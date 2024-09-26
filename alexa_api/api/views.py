@@ -61,7 +61,7 @@ class ToggleBulbAPI(APIView):
         client.loop_start()
 
         response_data = {
-            'text': 'Okay'
+            'text': 'action completed'
         }  
 
         time.sleep(0.3)
