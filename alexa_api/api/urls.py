@@ -7,5 +7,6 @@ urlpatterns = [
     path('login/', views.user_login, name='login'), 
     path('userinfo/', views.UserInfoView.as_view(), name='userinfo'), 
     path('authorize/', AuthorizationView.as_view(), name='authorize'),
-    path('token/', TokenView.as_view(), name='token'),
+    path('token/', TokenView.as_view(), name='token'), 
+    path('toggle_bulb/', views.ToggleBulbAPI.as_view()),
 ]
