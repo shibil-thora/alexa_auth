@@ -4,7 +4,17 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated 
 from django.contrib.auth import authenticate, login as auth_login 
 import string 
-import random
+import random 
+import paho.mqtt.client as mqtt  
+import os 
+import json 
+import time
+
+BROKER = 'mqtt.onwords.in'  
+PORT = 1883 
+ 
+client = mqtt.Client() 
+client.username_pw_set(os.environ.get('MQTT_USERNAME'), os.environ.get('MQTT_PASSWORD')) 
 
 
 class HomeAPI(APIView): 
@@ -12,10 +22,52 @@ class HomeAPI(APIView):
         return Response('hi')  
     
 class ToggleBulbAPI(APIView): 
-    def post(self, request): 
+    def post(self, request):  
+        product_id = '4l2ftc005' 
+        publish_topic = f'onwords/{product_id}/getCurrentStatus'
+        subscribe_topic = f'onwords/{product_id}/currentStatus' 
+
+        speech_output = ''
+
+        def on_message(client, userdata, message):  
+            print('got here....') 
+            message_str = message.payload.decode()  
+            message_dict = json.loads(message_str)
+            print(message_dict['device1'], type(message_dict), 'type....') 
+            change_status = 0 if message_dict['device1'] == 1 else 1
+            device_1_dict = {}
+            device_1_dict = {
+                'device1': change_status,
+                'id': product_id, 
+                'client_id': 'akshay@onwords.in'
+            } 
+          
+            message_string = json.dumps(device_1_dict)
+            client.publish(publish_topic, message_string)
+            print(f"Received message: {message_str} on topic: {message.topic}")  
+            
+
+        def on_connect(client, userdata, flags, rc): 
+            client.subscribe(subscribe_topic) 
+            request_data = {"request": "getCurrentStatus"}
+            request_payload = json.dumps(request_data)
+            client.publish(publish_topic, payload=request_payload, qos=1)
+            print('MQTT connected!')
+
+        client.connect(BROKER, PORT)  
+        client.subscribe(subscribe_topic)
+        client.on_connect = on_connect
+        client.on_message = on_message  
+        client.loop_start()
+
         response_data = {
             'text': 'text from drf'
-        } 
+        }  
+
+        time.sleep(0.3)
+        client.loop_stop()
+        client.disconnect()
+        print('client disconnected')
         return Response(response_data)
     
 def generate_authorization_code():
