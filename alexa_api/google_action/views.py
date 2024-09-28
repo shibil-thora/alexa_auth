@@ -10,7 +10,7 @@ class HomeApi(APIView):
     
 
 class ShyamApi(APIView): 
-    def get(self, request, id):  
-        customer_data = db.child("customer").child(id).get() 
+    def get(self, request, pk):  
+        customer_data = db.child("customer").child(pk).get() 
         response_data = customer_data.val()
         return Response(response_data)
