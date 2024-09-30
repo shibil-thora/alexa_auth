@@ -8,7 +8,8 @@ import random
 import paho.mqtt.client as mqtt  
 import os 
 import json 
-import time
+import time 
+from django.views.decorators.csrf import csrf_exempt
 
 BROKER = 'mqtt.onwords.in'  
 PORT = 1883 
@@ -73,6 +74,7 @@ class ToggleBulbAPI(APIView):
 def generate_authorization_code():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=30))
 
+@csrf_exempt
 def user_login(request):  
     if request.method == 'POST':
         username = request.POST.get('username')
