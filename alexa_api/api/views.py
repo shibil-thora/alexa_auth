@@ -24,7 +24,9 @@ class HomeAPI(APIView):
     
 class GetToken(APIView):
     def get(self, request): 
-        return Response('shibil_123412')
+        return Response('shibil_123412') 
+    def post(self, request): 
+        return Response('shibil_123412') 
     
 class ToggleBulbAPI(APIView): 
     def post(self, request):  
