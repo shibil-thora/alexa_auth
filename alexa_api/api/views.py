@@ -20,7 +20,11 @@ client.username_pw_set(os.environ.get('MQTT_USERNAME'), os.environ.get('MQTT_PAS
 
 class HomeAPI(APIView): 
     def get(self, request): 
-        return Response('hi')  
+        return Response('hi')   
+    
+class GetToken(APIView):
+    def get(self, request): 
+        return Response('shibil_123412')
     
 class ToggleBulbAPI(APIView): 
     def post(self, request):  
