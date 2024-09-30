@@ -84,7 +84,9 @@ def user_login(request):
             # try:
                 state = request.POST.get('state') 
                 redirect_uri = request.POST.get('redirect_uri')  
-                print('state: ', state)
+                print('state: ', state) 
+                print(request.POST, 'post')
+                print(request.GET, 'get')
                 print('redirect_uri: ', redirect_uri)
                 authorization_code = generate_authorization_code()
                 auth_login(request, user)
