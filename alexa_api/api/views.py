@@ -23,10 +23,18 @@ class HomeAPI(APIView):
         return Response('hi')   
     
 class GetToken(APIView):
-    def get(self, request): 
-        return Response('shibil_123412') 
     def post(self, request): 
-        return Response('shibil_123412') 
+        access_token = "access_shibil_123412"  
+        refresh_token = "refresh_shibil_123412"  
+        
+        response_data = {
+            "access_token": access_token,
+            "token_type": "Bearer",
+            "expires_in": 3600,  
+            "refresh_token": refresh_token 
+        }
+        return Response(response_data) 
+    
     
 class ToggleBulbAPI(APIView): 
     def post(self, request):  
