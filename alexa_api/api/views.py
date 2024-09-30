@@ -82,8 +82,8 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)  
         if user is not None:  
             # try:
-                state = request.POST.get('state') 
-                redirect_uri = request.POST.get('redirect_uri')  
+                state = request.GET.get('state') 
+                redirect_uri = request.GET.get('redirect_uri')  
                 print('state: ', state) 
                 print(request.POST, 'post')
                 print(request.GET, 'get')
