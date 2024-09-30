@@ -83,7 +83,9 @@ def user_login(request):
         if user is not None:  
             # try:
                 state = request.POST.get('state') 
-                redirect_uri = request.POST.get('redirect_uri') 
+                redirect_uri = request.POST.get('redirect_uri')  
+                print('state: ', state)
+                print('redirect_uri: ', redirect_uri)
                 authorization_code = generate_authorization_code()
                 auth_login(request, user)
                 return redirect(f'{redirect_uri}?code={authorization_code}&state={state}')
