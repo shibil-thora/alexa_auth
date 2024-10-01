@@ -11,7 +11,8 @@ import json
 import time 
 from django.views.decorators.csrf import csrf_exempt 
 from .firebase import db, auth  
-import secrets, hashlib
+import secrets, hashlib 
+from django.http import JsonResponse
 
 
 BROKER = 'mqtt.onwords.in'  
@@ -36,7 +37,118 @@ class GetToken(APIView):
             "expires_in": 3600,  
             "refresh_token": refresh_token 
         }
-        return Response(response_data) 
+        return Response(response_data)   
+    
+
+def generate_access_token(code):
+    users_data = db.child("new_db").child("users").get().val()
+    if not users_data:
+        return "None"
+
+    try:
+        for uid, user_data in users_data.items():
+            alexa_data = user_data.get("alexa", {})
+            if alexa_data.get("authorization_code") == code:
+                access_token_prefix = "Atza1|"
+                characters = string.ascii_letters + string.digits
+                random_part = ''.join(secrets.choice(characters) for _ in range(32))
+                access_token = access_token_prefix + random_part
+                db.child("new_db").child("users").child(uid).child("alexa").update({"access_token": access_token})
+                return access_token
+
+    except Exception as e:
+        print(f"Error generating access token: {e}")
+        return "None"
+
+    return "None" 
+
+
+def generate_access_token_login(refresh_token):
+    users_data = db.child("new_db").child("users").get().val()
+    if not users_data:
+        return "None"
+
+    try:
+        for uid, user_data in users_data.items():
+            alexa_data = user_data.get("alexa", {})
+            if alexa_data.get("refresh_token") == refresh_token:
+                access_token_prefix = "Atza1|"
+                characters = string.ascii_letters + string.digits
+                random_part = ''.join(secrets.choice(characters) for _ in range(32))
+                access_token = access_token_prefix + random_part
+                db.child("new_db").child("users").child(uid).child("alexa").update({"access_token": access_token})
+                return access_token
+
+    except Exception as e:
+        print(f"Error generating access token with refresh token: {e}")
+        return "None"
+
+    return "None"
+
+
+def refresh_access_token(code):
+    users_data = db.child("new_db").child("users").get().val()
+    if not users_data:
+        return "None"
+
+    try:
+        for uid, user_data in users_data.items():
+            alexa_data = user_data.get("alexa", {})
+            if alexa_data.get("authorization_code") == code:
+                access_token_prefix = "Atzr1|"
+                characters = string.ascii_letters + string.digits
+                random_part = ''.join(secrets.choice(characters) for _ in range(32))
+                refresh_token = access_token_prefix + random_part
+                db.child("new_db").child("users").child(uid).child("alexa").update({"refresh_token": refresh_token})
+                return refresh_token
+
+    except Exception as e:
+        print(f"Error generating refresh token: {e}")
+        return "None"
+
+    return "None" 
+
+
+def refresh_token_to_refresh(existing_refresh_token):
+    users_data = db.child("new_db").child("users").get().val()
+    if not users_data:
+        return "None"
+
+    try:
+        for uid, user_data in users_data.items():
+            alexa_data = user_data.get("alexa", {})
+            if alexa_data.get("refresh_token") == existing_refresh_token:
+                access_token_prefix = "Atzr1|"
+                characters = string.ascii_letters + string.digits
+                new_refresh_token = ''.join(secrets.choice(characters) for _ in range(32))
+                db.child("new_db").child("users").child(uid).child("alexa").update({"refresh_token": new_refresh_token})
+                return new_refresh_token
+
+    except Exception as e:
+        print(f"Error generating new refresh token: {e}")
+        return "None"
+
+    return "None"
+    
+
+@csrf_exempt
+def accessToken(request):
+    if request.method == 'POST':
+        code = request.POST.get("code")
+        refresh_token = request.POST.get("refresh_token")
+        if refresh_token is not None:
+            new_access_token = generate_access_token_login(refresh_token)
+            new_refresh_token = refresh_token_to_refresh(refresh_token)
+            return JsonResponse({"access_token": new_access_token, "token_type": "bearer", "expires_in": 86400, "refresh_token": new_refresh_token})
+
+        elif code is not None:
+            access_token = generate_access_token(code)
+            refresh_token = refresh_access_token(code)
+            return JsonResponse({"access_token": access_token, "token_type": "bearer", "expires_in": 86400, "refresh_token": refresh_token})
+        else:
+            return JsonResponse({"error": "Missing code or refresh_token"}, status=400)
+    else:
+        return JsonResponse({"error": "Unsupported request method"}, status=405)
     
     
 class ToggleBulbAPI(APIView): 
