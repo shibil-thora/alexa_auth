@@ -12,7 +12,10 @@ import time
 from django.views.decorators.csrf import csrf_exempt 
 from .firebase import db, auth  
 import secrets, hashlib 
-from django.http import JsonResponse
+from django.http import JsonResponse 
+import logging 
+
+logger = logging.getLogger(__name__)
 
 
 BROKER = 'mqtt.onwords.in'  
@@ -251,6 +254,7 @@ class UserInfoView(APIView):
 
 @csrf_exempt
 def get_device_details(request): 
+    logger.info("INside the device discovery function")
     print('comes inside get device details')
     # Get Authorization header
     authorization_header = request.META.get('HTTP_AUTHORIZATION')
