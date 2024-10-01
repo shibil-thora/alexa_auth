@@ -7,7 +7,7 @@ urlpatterns = [
     path('login/', views.user_login, name='login'), 
     path('userinfo/', views.UserInfoView.as_view(), name='userinfo'), 
     path('authorize/', AuthorizationView.as_view(), name='authorize'),
-    path('token/', views.GetToken.as_view(), name='tokendef'), 
+    path('token/', views.accessToken, name='tokendef'), 
     path('toggle_bulb/', views.ToggleBulbAPI.as_view()),
     path("get_device_details/",views.get_device_details),
 ]
