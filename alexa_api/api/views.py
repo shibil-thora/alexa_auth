@@ -250,7 +250,8 @@ class UserInfoView(APIView):
     
 
 @csrf_exempt
-def get_device_details(request):
+def get_device_details(request): 
+    print('comes inside get device details')
     # Get Authorization header
     authorization_header = request.META.get('HTTP_AUTHORIZATION')
     if authorization_header and authorization_header.startswith('Bearer '):
