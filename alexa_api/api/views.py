@@ -9,7 +9,10 @@ import paho.mqtt.client as mqtt
 import os 
 import json 
 import time 
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt 
+from .firebase import db, auth  
+import secrets, hashlib
+
 
 BROKER = 'mqtt.onwords.in'  
 PORT = 1883 
@@ -85,27 +88,37 @@ class ToggleBulbAPI(APIView):
         print('client disconnected')
         return Response(response_data)
     
-def generate_authorization_code():
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=30))
+def generate_authorization_code(uid, email, password):
+    characters = string.ascii_letters + string.digits
+    timestamp = str(int(time.time()))
+    data_to_hash = f"{email}{password}{timestamp}"
+    hashed_data = hashlib.sha256(data_to_hash.encode()).hexdigest()
+    authorization_code = ''.join(secrets.choice(characters) for _ in range(16))
+    try:
+        db.child("new_db").child("users").child(uid).child("alexa").update({"authorization_code": authorization_code})
+    except Exception as e:
+        pass
+    return authorization_code
 
 @csrf_exempt
 def user_login(request):  
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)  
-        print(user, username, password)
+        email = request.POST.get('email')
+        password = request.POST.get('password') 
+        user = None 
+        try:
+            user = auth.sign_in_with_email_and_password(email=email, password=password) 
+            print(user, email, password)
+        except:
+            user = None
+        print(user, email, password)
         if user is not None:  
             # try:
                 state = request.GET.get('state') 
+                uid = user['localId']
                 redirect_uri = request.GET.get('redirect_uri')  
-                print('state: ', state) 
-                print(request.POST, 'post')
-                print(request.GET, 'get')
-                print('redirect_uri: ', redirect_uri)
-                authorization_code = generate_authorization_code()
-                auth_login(request, user)
-                return redirect(f'{redirect_uri}?code={authorization_code}&state={state}')
+                authorization_code = generate_authorization_code(uid, email, password)
+                return redirect(f'{redirect_uri}?code={authorization_code}&state={state}') 
             # except: 
             #     return render(request, 'login.html', {'error': 'Invalid state'})
         else:
