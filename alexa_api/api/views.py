@@ -327,12 +327,12 @@ def login(request):
 def loginAuth(request):
     email = request.POST.get("email-field")
     password = request.POST.get("password")
-    state = request.POST.get("state")
+    state = request.POST.get("state") 
+    redirect_uri = request.POST.get('redirect_uri')
     try:
         user = auth.sign_in_with_email_and_password(email, password)
         uid = user['localId']
         authorization_code = generate_authorization_code(uid, email, password)
-        redirect_uri = "https://layla.amazon.com/api/skill/link/M141NMRCW3LRJG"
         redirect_uri_final = f"{redirect_uri}?state={state}&code={authorization_code}"
         return HttpResponseRedirect(redirect_uri_final)
     except Exception as e:
