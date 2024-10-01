@@ -246,4 +246,68 @@ class UserInfoView(APIView):
         return Response({
             'username': user.username,
             'email': user.email,
-        })
+        }) 
+    
+
+@csrf_exempt
+def get_device_details(request):
+    # Get Authorization header
+    authorization_header = request.META.get('HTTP_AUTHORIZATION')
+    if authorization_header and authorization_header.startswith('Bearer '):
+        access_token_get = authorization_header[len('Bearer '):]
+
+        # Retrieve all users data from Firebase database
+        all_users_data = db.child("new_db").child("users").get().val() 
+        print(all_users_data, 'here only')
+
+        if not all_users_data:
+            return JsonResponse({"error": "No user data found"}, status=404)
+
+        # Iterate over all users to find the matching Alexa access token
+        for uid, user_data in all_users_data.items():
+            alexa_tokens = user_data.get("alexa", {})
+
+            if alexa_tokens.get("access_token") == access_token_get:
+                device_id = []
+
+                # Get user's homes and associated devices
+                user_homes = user_data.get("homes", {})
+                process_homes(user_homes, device_id)
+
+                # Handle guest access homes (if the user has access to other homes)
+                guest_data = db.child("new_db").child("users").child(uid).child("homes").child("access").get().val()
+                if guest_data:
+                    for guest_home_id, access_info in guest_data.items():
+                        owner_uid = access_info.get("owner_id")
+                        if owner_uid:
+                            owner_home_data = db.child("new_db").child("users").child(owner_uid).child("homes").child(guest_home_id).get().val()
+                            if owner_home_data:
+                                process_homes({guest_home_id: owner_home_data}, device_id)
+
+                # Prepare device details for response
+                dev_product_id = [i["id"] + "_" + i["product_id"] for i in device_id]
+                product_name = [i["name"] for i in device_id]
+
+                # Return device details in JSON response
+                return JsonResponse({"name": product_name, "device_id": dev_product_id})
+
+    # If unauthorized or token is missing
+    return JsonResponse({"error": "Unauthorized"}, status=401)
+
+def process_homes(homes_data, device_id):
+    try:
+        # Loop through homes, rooms, products, and devices
+        for home_id, home_data in homes_data.items():
+            rooms = home_data.get("rooms", {})
+            for room_id, room_data in rooms.items():
+                products = room_data.get("products", {})
+                for product_id, product_data in products.items():
+                    devices = product_data.get("devices", {})
+                    for device_key, device_data in devices.items():
+                        device_id.append({
+                            "id": device_key,
+                            "name": device_data.get("name"),
+                            "product_id": product_id
+                        })
+    except Exception as e:
+        print(f"Error processing homes: {e}")
