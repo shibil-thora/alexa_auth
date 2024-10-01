@@ -94,6 +94,7 @@ def user_login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)  
+        print(user, username, password)
         if user is not None:  
             # try:
                 state = request.GET.get('state') 
