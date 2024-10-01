@@ -328,7 +328,7 @@ def loginAuth(request):
     email = request.POST.get("email-field")
     password = request.POST.get("password")
     state = request.POST.get("state") 
-    redirect_uri = request.POST.get('redirect_uri')
+    redirect_uri = 'https://layla.amazon.com/api/skill/link/M1I52L4W1PSYHI'
     try:
         user = auth.sign_in_with_email_and_password(email, password)
         uid = user['localId']
