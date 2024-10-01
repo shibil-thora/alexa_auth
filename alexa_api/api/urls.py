@@ -9,5 +9,5 @@ urlpatterns = [
     path('authorize/', AuthorizationView.as_view(), name='authorize'),
     path('token/', views.accessToken, name='tokendef'), 
     path('toggle_bulb/', views.ToggleBulbAPI.as_view()),
-    path("get_device_details/",views.get_device_details),
+    path("get_device_details",views.get_device_details),
 ]
